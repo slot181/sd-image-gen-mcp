@@ -301,9 +301,22 @@ class ImageGenServer {
               const outputPath = path.join(outputDir, `sd_${randomUUID()}.png`);
               const imageBuffer = Buffer.from(base64Data, 'base64');
               
-              await sharp(imageBuffer)
-                .withMetadata({ exif: { IFD0: { ImageDescription: pngInfoResponse.data.info } } })
-                .toFile(outputPath);
+              let sharpInstance = sharp(imageBuffer);
+              const infoString = pngInfoResponse.data.info;
+
+              // Only add EXIF metadata if the info string is not empty
+              if (typeof infoString === 'string' && infoString.trim() !== '') {
+                try {
+                  sharpInstance = sharpInstance.withMetadata({ exif: { IFD0: { ImageDescription: infoString } } });
+                } catch (exifError) {
+                   console.warn(`[sd-image-gen-mcp] Failed to prepare EXIF metadata: ${exifError instanceof Error ? exifError.message : String(exifError)}. Skipping EXIF for this image.`);
+                   // Optionally re-throw if you want the whole operation to fail on EXIF error
+                }
+              } else {
+                console.warn(`[sd-image-gen-mcp] Received empty or invalid info string from png-info endpoint. Skipping EXIF metadata.`);
+              }
+
+              await sharpInstance.toFile(outputPath);
 
               results.push({ path: outputPath, parameters: pngInfoResponse.data.info });
             }
