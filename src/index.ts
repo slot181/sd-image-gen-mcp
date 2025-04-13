@@ -14,20 +14,37 @@ import fs from 'fs';
 import { mkdir } from 'fs/promises';
 import { randomUUID } from 'crypto';
 
-const SD_WEBUI_URL = process.env.SD_WEBUI_URL || 'http://127.0.0.1:7860';
-const AUTH_USER = process.env.SD_AUTH_USER;
-const AUTH_PASS = process.env.SD_AUTH_PASS;
-const DEFAULT_OUTPUT_DIR = process.env.SD_OUTPUT_DIR || './output';
-const REQUEST_TIMEOUT = parseInt(process.env.REQUEST_TIMEOUT || "300000", 10);
+// Helper function to parse arguments in the format "-e KEY VALUE"
+function parseCliArgs(argv: string[]): { [key: string]: string } {
+  const args = argv.slice(2); // Skip node executable and script path
+  const parsed: { [key: string]: string } = {};
+  for (let i = 0; i < args.length; i++) {
+    if (args[i] === '-e' && i + 2 < args.length) {
+      const key = args[i + 1];
+      const value = args[i + 2];
+      parsed[key] = value;
+      i += 2; // Move index past the key and value
+    }
+  }
+  return parsed;
+}
+
+const cliArgs = parseCliArgs(process.argv);
+
+// Prioritize command-line args (-e), fall back to environment variables
+const SD_WEBUI_URL = cliArgs.SD_WEBUI_URL || process.env.SD_WEBUI_URL || 'http://127.0.0.1:7860';
+const AUTH_USER = cliArgs.SD_AUTH_USER || process.env.SD_AUTH_USER;
+const AUTH_PASS = cliArgs.SD_AUTH_PASS || process.env.SD_AUTH_PASS;
+const DEFAULT_OUTPUT_DIR = cliArgs.SD_OUTPUT_DIR || process.env.SD_OUTPUT_DIR || './output';
+const REQUEST_TIMEOUT = parseInt(cliArgs.REQUEST_TIMEOUT || process.env.REQUEST_TIMEOUT || "300000", 10);
 
 // Upscaling defaults
-const SD_RESIZE_MODE = parseInt(process.env.SD_RESIZE_MODE || "0", 10);
-const SD_UPSCALE_MULTIPLIER = parseInt(process.env.SD_UPSCALE_MULTIPLIER || "4", 10);
-const SD_UPSCALE_WIDTH = parseInt(process.env.SD_UPSCALE_WIDTH || "512", 10);
-const SD_UPSCALE_HEIGHT = parseInt(process.env.SD_UPSCALE_HEIGHT || "512", 10);
-const SD_UPSCALER_1 = process.env.SD_UPSCALER_1 || "R-ESRGAN 4x+";
-const SD_UPSCALER_2 = process.env.SD_UPSCALER_2 || "None";
-
+const SD_RESIZE_MODE = parseInt(cliArgs.SD_RESIZE_MODE || process.env.SD_RESIZE_MODE || "0", 10);
+const SD_UPSCALE_MULTIPLIER = parseInt(cliArgs.SD_UPSCALE_MULTIPLIER || process.env.SD_UPSCALE_MULTIPLIER || "4", 10);
+const SD_UPSCALE_WIDTH = parseInt(cliArgs.SD_UPSCALE_WIDTH || process.env.SD_UPSCALE_WIDTH || "512", 10);
+const SD_UPSCALE_HEIGHT = parseInt(cliArgs.SD_UPSCALE_HEIGHT || process.env.SD_UPSCALE_HEIGHT || "512", 10);
+const SD_UPSCALER_1 = cliArgs.SD_UPSCALER_1 || process.env.SD_UPSCALER_1 || "R-ESRGAN 4x+";
+const SD_UPSCALER_2 = cliArgs.SD_UPSCALER_2 || process.env.SD_UPSCALER_2 || "None";
 interface GenerateImageArgs {
   prompt: string;
   negative_prompt?: string;
