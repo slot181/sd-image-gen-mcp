@@ -227,11 +227,11 @@ class ImageGenServer {
             type: 'object',
             properties: {
               prompt: { type: 'string', description: 'The prompt describing the desired image' },
-              negative_prompt: { type: 'string', description: 'Things to exclude from the image' },
-              steps: { type: 'number', description: 'Number of sampling steps (default: 4)', minimum: 1, maximum: 150 },
+              negative_prompt: { type: 'string', description: 'Things to exclude from the image (In most cases, especially if the user hasn\'t requested it, there\'s no need to input anything)' },
+              steps: { type: 'number', description: 'Number of sampling steps (default: 20)', minimum: 1, maximum: 150 },
               width: { type: 'number', description: 'Image width (default: 1024)', minimum: 512, maximum: 2048 },
               height: { type: 'number', description: 'Image height (default: 1024)', minimum: 512, maximum: 2048 },
-              cfg_scale: { type: 'number', description: 'CFG scale (default: 1)', minimum: 1, maximum: 30 },
+              cfg_scale: { type: 'number', description: 'CFG scale (default: 3.5)', minimum: 1, maximum: 30 },
               sampler_name: { type: 'string', description: 'Sampling algorithm (default: Euler a)', default: 'Euler a' },
               scheduler_name: { type: 'string', description: 'Scheduler algorithm (default: Automatic)', default: 'Automatic' },
               seed: { type: 'number', description: 'Random seed (-1 for random)', minimum: -1 },
@@ -334,8 +334,8 @@ class ImageGenServer {
 
             const payload: SDAPIPayload = {
               prompt: args.prompt,
-              negative_prompt: args.negative_prompt || '',
-              steps: args.steps || 4,
+              negative_prompt: args.negative_prompt || 'worst quality,bad quality,bad hands,very displeasing,extra digit,fewer digits,jpeg artifacts,signature,username,reference,mutated,lineup,manga,comic,disembodied,futanari,yaoi,dickgirl,turnaround,2koma,4koma,monster,cropped,amputee,text,bad foreshortening,what,guro,logo,bad anatomy,bad perspective,bad proportions,artistic error,anatomical nonsense,amateur,out of frame,multiple views,disfigured,ugly,mutation,acnes,skin spots,skin blemishes,poorly drawn face,bathtub,shore,grass,buildings,stone,missing fingers,fused fingers,disconnected limbs,extra limb,extra arms,mutated hands,poorly drawn hands,malformed hands,mutated hands and fingers,missing limb,malformed limbs,deformed',
+              steps: args.steps || 20,
               width: args.width || 1024,
               height: args.height || 1024,
               cfg_scale: args.cfg_scale || 1,
