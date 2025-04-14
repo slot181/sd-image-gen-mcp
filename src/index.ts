@@ -245,6 +245,33 @@ class ImageGenServer {
           }
         },
         {
+          name: 'get_sd_samplers',
+          description: 'Get list of available samplers',
+          inputSchema: {
+            type: 'object',
+            properties: {},
+            required: []
+          }
+        },
+        {
+          name: 'get_sd_loras',
+          description: 'Get list of available LoRA models',
+          inputSchema: {
+            type: 'object',
+            properties: {},
+            required: []
+          }
+        },
+        {
+          name: 'get_sd_options',
+          description: 'Get current Stable Diffusion WebUI settings',
+          inputSchema: {
+            type: 'object',
+            properties: {},
+            required: []
+          }
+        },
+        {
           name: 'get_sd_models',
           description: 'Retrieves a list of available Stable Diffusion models. This function is only executed when explicitly requested by the user and is not automatically called by default.',
           inputSchema: {
@@ -416,6 +443,25 @@ class ImageGenServer {
             const response = await this.axiosInstance.get('/sdapi/v1/upscalers');
             const upscalers = response.data as UpscalerInfo[];
             return { content: [{ type: 'text', text: JSON.stringify(upscalers.map(u => u.name)) }] };
+          }
+
+          case 'get_sd_samplers': {
+            const response = await this.axiosInstance.get('/sdapi/v1/samplers');
+            // Assuming response.data is an array of objects like [{ name: "Euler a", aliases: [], options: {} }, ...]
+            const samplers = Array.isArray(response.data) ? response.data.map((s: any) => s?.name).filter(Boolean) : [];
+            return { content: [{ type: 'text', text: JSON.stringify(samplers) }] };
+          }
+
+          case 'get_sd_loras': {
+            const response = await this.axiosInstance.get('/sdapi/v1/loras');
+            // Assuming response.data is an array of objects like [{ name: "lora_name", alias: "...", path: "...", metadata: {} }, ...]
+            return { content: [{ type: 'text', text: JSON.stringify(response.data) }] };
+          }
+
+          case 'get_sd_options': {
+            const response = await this.axiosInstance.get('/sdapi/v1/options');
+            // Assuming response.data is a JSON object with all settings
+            return { content: [{ type: 'text', text: JSON.stringify(response.data) }] };
           }
 
           case 'upscale_images': {
