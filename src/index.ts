@@ -291,15 +291,15 @@ class ImageGenServer {
               },
               upscaling_resize: {
                 type: 'number',
-                description: 'Upscale multiplier (default: 4) - used when resize_mode is 0'
+                description: 'Upscale multiplier (default: 2) - used when resize_mode is 0'
               },
               upscaling_resize_w: {
                 type: 'number',
-                description: 'Target width in pixels (default: 512) - used when resize_mode is 1'
+                description: 'Target width in pixels (default: 1024) - used when resize_mode is 1'
               },
               upscaling_resize_h: {
                 type: 'number',
-                description: 'Target height in pixels (default: 512) - used when resize_mode is 1'
+                description: 'Target height in pixels (default: 1024) - used when resize_mode is 1'
               },
               upscaler_1: {
                 type: 'string',
