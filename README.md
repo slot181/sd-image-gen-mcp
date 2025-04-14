@@ -15,7 +15,7 @@ A MCP server that provides text-to-image generation capabilities using Stable Di
 
 1.  Clone the repository:
     ```bash
-    git clone https://github.com/Ichigo3766/image-gen-mcp.git
+    git clone https://github.com/slot181/sd-image-gen-mcp.git
     cd sd-image-gen-mcp
     ```
 
@@ -44,57 +44,26 @@ A MCP server that provides text-to-image generation capabilities using Stable Di
         "sd-image-gen": { // Choose a name for your server instance
           "command": "node",
           "args": [
-            "/path/to/sd-image-gen-mcp/build/index.js", // <-- Make sure this path is correct
-            "-e", "SD_WEBUI_URL", "http://your-sd-webui-url:7860",
-            "-e", "SD_OUTPUT_DIR", "/path/to/output/directory",
-            // Optional Auth
-            // "-e", "SD_AUTH_USER", "your-username",
-            // "-e", "SD_AUTH_PASS", "your-password",
-            // Optional Upscaling Defaults
-            // "-e", "SD_RESIZE_MODE", "0",
-            // "-e", "SD_UPSCALE_MULTIPLIER", "4",
-            // "-e", "SD_UPSCALE_WIDTH": "512",
-            // "-e", "SD_UPSCALE_HEIGHT": "512",
-            // "-e", "SD_UPSCALER_1": "R-ESRGAN 4x+",
-            // "-e", "SD_UPSCALER_2": "None",
-            // Optional ImgBed Upload
-            // "-e", "CF_IMGBED_UPLOAD_URL", "https://your-imgbed-url/upload",
-            // "-e", "CF_IMGBED_API_KEY": "your-imgbed-api-key",
-            // Optional Timeout
-            // "-e", "REQUEST_TIMEOUT", "300000" // 5 minutes in milliseconds
+            "/path/to/sd-image-gen-mcp/build/index.js"
           ],
           "env": {
-             // Environment variables can also be set here, but CLI args take priority
+            "SD_WEBUI_URL": "http://your-sd-webui-url:7860", // Required: URL of your Stable Diffusion WebUI instance
+            "SD_OUTPUT_DIR": "/path/to/output/directory", // Optional: if not provided, images will be saved to the server's running directory
+            "SD_AUTH_USER": "your-username",  // Optional: if authentication is enabled
+            "SD_AUTH_PASS": "your-password",  // Optional: if authentication is enabled
+            "SD_RESIZE_MODE": "0",           // Optional: upscaling mode (0=multiplier, 1=dimensions)
+            "SD_UPSCALE_MULTIPLIER": "2",    // Optional: default upscale multiplier
+            "SD_UPSCALE_WIDTH": "1024",       // Optional: default upscale width
+            "SD_UPSCALE_HEIGHT": "1024",      // Optional: default upscale height
+            "SD_UPSCALER_1": "R-ESRGAN 4x+", // Optional: default primary upscaler
+            "SD_UPSCALER_2": "None",          // Optional: default secondary upscaler
+            "CF_IMGBED_UPLOAD_URL": "https://your-imgbed-url/upload", // Optional: if Cloudflare ImgBed is enabled
+            "CF_IMGBED_API_KEY": "your-imgbed-api-key", // Optional: if Cloudflare ImgBed is enabled
+            "REQUEST_TIMEOUT": "300000"  // Optional: timeout for requests to the SD WebUI API
           }
         }
       }
     }
-    ```
-
-    **Example using environment variables:**
-
-    Set the following environment variables before running the server:
-
-    ```bash
-    export SD_WEBUI_URL="http://your-sd-webui-url:7860"
-    export SD_OUTPUT_DIR="/path/to/output/directory"
-    # Optional Auth
-    # export SD_AUTH_USER="your-username"
-    # export SD_AUTH_PASS="your-password"
-    # Optional Upscaling Defaults
-    # export SD_RESIZE_MODE="0"
-    # export SD_UPSCALE_MULTIPLIER="4"
-    # export SD_UPSCALE_WIDTH="512"
-    # export SD_UPSCALE_HEIGHT="512"
-    # export SD_UPSCALER_1="R-ESRGAN 4x+"
-    # export SD_UPSCALER_2="None"
-    # Optional ImgBed Upload
-    # export CF_IMGBED_UPLOAD_URL="https://your-imgbed-url/upload"
-    # export CF_IMGBED_API_KEY="your-imgbed-api-key"
-    # Optional Timeout
-    # export REQUEST_TIMEOUT="300000" # 5 minutes in milliseconds
-
-    node /path/to/sd-image-gen-mcp/build/index.js
     ```
 
     **Configuration Parameters:**
@@ -107,9 +76,9 @@ A MCP server that provides text-to-image generation capabilities using Stable Di
     *   `CF_IMGBED_UPLOAD_URL` (Optional): The upload endpoint URL for your Cloudflare ImgBed instance. If set along with `CF_IMGBED_API_KEY`, generated images will be uploaded.
     *   `CF_IMGBED_API_KEY` (Optional): The API key (authCode) for your Cloudflare ImgBed instance.
     *   `SD_RESIZE_MODE` (Optional): Default upscaling mode (0=multiplier, 1=dimensions). Defaults to `0`.
-    *   `SD_UPSCALE_MULTIPLIER` (Optional): Default upscale multiplier when `SD_RESIZE_MODE` is 0. Defaults to `4`.
-    *   `SD_UPSCALE_WIDTH` (Optional): Default target width when `SD_RESIZE_MODE` is 1. Defaults to `512`.
-    *   `SD_UPSCALE_HEIGHT` (Optional): Default target height when `SD_RESIZE_MODE` is 1. Defaults to `512`.
+    *   `SD_UPSCALE_MULTIPLIER` (Optional): Default upscale multiplier when `SD_RESIZE_MODE` is 0. Defaults to `2`.
+    *   `SD_UPSCALE_WIDTH` (Optional): Default target width when `SD_RESIZE_MODE` is 1. Defaults to `1024`.
+    *   `SD_UPSCALE_HEIGHT` (Optional): Default target height when `SD_RESIZE_MODE` is 1. Defaults to `1024`.
     *   `SD_UPSCALER_1` (Optional): Default primary upscaler model name. Defaults to `"R-ESRGAN 4x+"`.
     *   `SD_UPSCALER_2` (Optional): Default secondary upscaler model name. Defaults to `"None"`.
 
@@ -124,7 +93,7 @@ A MCP server that provides text-to-image generation capabilities using Stable Di
         -   `steps`: Number of sampling steps (default: 20, range: 1-150).
         -   `width`: Image width (default: 1024, range: 512-2048).
         -   `height`: Image height (default: 1024, range: 512-2048).
-        -   `cfg_scale`: CFG scale (default: 1, range: 1-30).
+        -   `cfg_scale`: CFG scale (default: 3.5, range: 1-30).
         -   `sampler_name`: Sampling algorithm (default: "Euler a").
         -   `scheduler_name`: Scheduler algorithm (default: "Automatic").
         -   `seed`: Random seed (-1 for random).

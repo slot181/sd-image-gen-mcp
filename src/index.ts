@@ -41,9 +41,9 @@ const REQUEST_TIMEOUT = parseInt(cliArgs.REQUEST_TIMEOUT || process.env.REQUEST_
 
 // Upscaling defaults
 const SD_RESIZE_MODE = parseInt(cliArgs.SD_RESIZE_MODE || process.env.SD_RESIZE_MODE || "0", 10);
-const SD_UPSCALE_MULTIPLIER = parseInt(cliArgs.SD_UPSCALE_MULTIPLIER || process.env.SD_UPSCALE_MULTIPLIER || "4", 10);
-const SD_UPSCALE_WIDTH = parseInt(cliArgs.SD_UPSCALE_WIDTH || process.env.SD_UPSCALE_WIDTH || "512", 10);
-const SD_UPSCALE_HEIGHT = parseInt(cliArgs.SD_UPSCALE_HEIGHT || process.env.SD_UPSCALE_HEIGHT || "512", 10);
+const SD_UPSCALE_MULTIPLIER = parseInt(cliArgs.SD_UPSCALE_MULTIPLIER || process.env.SD_UPSCALE_MULTIPLIER || "2", 10);
+const SD_UPSCALE_WIDTH = parseInt(cliArgs.SD_UPSCALE_WIDTH || process.env.SD_UPSCALE_WIDTH || "1024", 10);
+const SD_UPSCALE_HEIGHT = parseInt(cliArgs.SD_UPSCALE_HEIGHT || process.env.SD_UPSCALE_HEIGHT || "1024", 10);
 const SD_UPSCALER_1 = cliArgs.SD_UPSCALER_1 || process.env.SD_UPSCALER_1 || "R-ESRGAN 4x+";
 const SD_UPSCALER_2 = cliArgs.SD_UPSCALER_2 || process.env.SD_UPSCALER_2 || "None";
 
@@ -338,7 +338,7 @@ class ImageGenServer {
               steps: args.steps || 20,
               width: args.width || 1024,
               height: args.height || 1024,
-              cfg_scale: args.cfg_scale || 1,
+              cfg_scale: args.cfg_scale || 3.5,
               sampler_name: args.sampler_name || 'Euler a',
               seed: args.seed ?? -1,
               n_iter: args.batch_size || 1,
