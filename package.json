@@ -13,8 +13,11 @@
     "@types/node": "latest",
     "@types/sharp": "latest",
     "axios": "latest",
-    "form-data": "latest",
+    "form-data": "^4.0.2",
     "sharp": "latest",
     "typescript": "^5.8.2"
+  },
+  "devDependencies": {
+    "@types/form-data": "^2.2.1"
   }
 }

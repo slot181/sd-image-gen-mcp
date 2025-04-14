@@ -13,6 +13,7 @@ import path from 'path';
 import fs from 'fs';
 import { mkdir } from 'fs/promises';
 import { randomUUID } from 'crypto';
+import FormData from 'form-data'; // <-- Import form-data
 
 // Helper function to parse arguments in the format "-e KEY VALUE"
 function parseCliArgs(argv: string[]): { [key: string]: string } {
@@ -45,6 +46,10 @@ const SD_UPSCALE_WIDTH = parseInt(cliArgs.SD_UPSCALE_WIDTH || process.env.SD_UPS
 const SD_UPSCALE_HEIGHT = parseInt(cliArgs.SD_UPSCALE_HEIGHT || process.env.SD_UPSCALE_HEIGHT || "512", 10);
 const SD_UPSCALER_1 = cliArgs.SD_UPSCALER_1 || process.env.SD_UPSCALER_1 || "R-ESRGAN 4x+";
 const SD_UPSCALER_2 = cliArgs.SD_UPSCALER_2 || process.env.SD_UPSCALER_2 || "None";
+
+// Cloudflare ImgBed Configuration
+const CF_IMGBED_UPLOAD_URL = cliArgs.CF_IMGBED_UPLOAD_URL || process.env.CF_IMGBED_UPLOAD_URL;
+const CF_IMGBED_API_KEY = cliArgs.CF_IMGBED_API_KEY || process.env.CF_IMGBED_API_KEY;
 interface GenerateImageArgs {
   prompt: string;
   negative_prompt?: string;
@@ -133,6 +138,53 @@ interface UpscaleImagePayload {
 class ImageGenServer {
   private server: Server;
   private axiosInstance;
+
+  // --- CF ImgBed Upload Function ---
+  private async uploadToCfImgbed(imageData: Buffer, filename: string): Promise<string | null> {
+    if (!CF_IMGBED_UPLOAD_URL || !CF_IMGBED_API_KEY) {
+      console.warn('[sd-image-gen-mcp] CF ImgBed URL or API Key not configured. Skipping upload.');
+      return null;
+    }
+
+    const form = new FormData();
+    form.append('file', imageData, filename);
+
+    // Check if the base URL already contains query parameters
+    const separator = CF_IMGBED_UPLOAD_URL.includes('?') ? '&' : '?';
+    const uploadUrlWithAuth = `${CF_IMGBED_UPLOAD_URL}${separator}authCode=${CF_IMGBED_API_KEY}`;
+
+    try {
+      console.info(`[sd-image-gen-mcp] Uploading image '${filename}' to CF ImgBed...`);
+      const response = await axios.post(uploadUrlWithAuth, form, {
+        headers: {
+          ...form.getHeaders(), // Include headers from form-data
+        },
+        timeout: 60000, // 60 second timeout for upload
+      });
+
+      if (response.status === 200 && Array.isArray(response.data) && response.data.length > 0 && response.data[0]?.src) {
+        const imagePathSegment = response.data[0].src;
+        // Construct the full URL based on the upload URL's origin
+        const parsedUploadUrl = new URL(CF_IMGBED_UPLOAD_URL);
+        const baseUrlStr = `${parsedUploadUrl.protocol}//${parsedUploadUrl.host}`;
+        const fullUrl = new URL(imagePathSegment, baseUrlStr).toString();
+        console.info(`[sd-image-gen-mcp] Image uploaded successfully: ${fullUrl}`);
+        return fullUrl;
+      } else {
+        console.error(`[sd-image-gen-mcp] Unexpected response format from ImgBed: Status ${response.status}, Data: ${JSON.stringify(response.data)}`);
+        return null;
+      }
+    } catch (error) {
+      let errorMessage = 'Unknown error during ImgBed upload';
+      if (axios.isAxiosError(error)) {
+        errorMessage = `Axios error: ${error.message}${error.response ? ` - Status ${error.response.status} - ${JSON.stringify(error.response.data)}` : ''}`;
+      } else if (error instanceof Error) {
+        errorMessage = error.message;
+      }
+      console.error(`[sd-image-gen-mcp] Error uploading image to ImgBed: ${errorMessage}`);
+      return null;
+    }
+  }
 
   constructor() {
     this.server = new Server(
@@ -318,7 +370,18 @@ class ImageGenServer {
 
               await sharpInstance.toFile(outputPath);
 
-              results.push({ path: outputPath, parameters: pngInfoResponse.data.info });
+              // --- Upload to CF ImgBed if configured ---
+              let uploadedUrl: string | null = null;
+              if (CF_IMGBED_UPLOAD_URL && CF_IMGBED_API_KEY) {
+                 uploadedUrl = await this.uploadToCfImgbed(imageBuffer, path.basename(outputPath));
+              }
+              // --- End Upload ---
+
+              results.push({
+                 path: outputPath,
+                 parameters: pngInfoResponse.data.info,
+                 url: uploadedUrl // Add the URL field
+              });
             }
 
             return { content: [{ type: 'text', text: JSON.stringify(results) }] };
