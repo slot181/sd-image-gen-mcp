@@ -227,7 +227,7 @@ class ImageGenServer {
             type: 'object',
             properties: {
               prompt: { type: 'string', description: 'The prompt describing the desired image' },
-              negative_prompt: { type: 'string', description: 'Things to exclude from the image (In most cases, especially if the user hasn\'t requested it, there\'s no need to input anything)' },
+              negative_prompt: { type: 'string', description: 'Specify elements to exclude from the image. Input is only needed when explicitly requested by the user - in most cases, this field can be left empty.' },
               steps: { type: 'number', description: 'Number of sampling steps (default: 20)', minimum: 1, maximum: 150 },
               width: { type: 'number', description: 'Image width (default: 1024)', minimum: 512, maximum: 2048 },
               height: { type: 'number', description: 'Image height (default: 1024)', minimum: 512, maximum: 2048 },
@@ -246,7 +246,7 @@ class ImageGenServer {
         },
         {
           name: 'get_sd_models',
-          description: 'Get list of available Stable Diffusion models',
+          description: 'Retrieves a list of available Stable Diffusion models. This function is only executed when explicitly requested by the user and is not automatically called by default.',
           inputSchema: {
             type: 'object',
             properties: {},
@@ -266,7 +266,7 @@ class ImageGenServer {
         },
         {
           name: 'get_sd_upscalers',
-          description: 'Get list of available upscaler models',
+          description: 'Retrieves a list of available image upscaler models. This function is only executed when explicitly requested by the user and is not automatically called by default.',
           inputSchema: {
             type: 'object',
             properties: {},
