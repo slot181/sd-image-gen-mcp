@@ -171,17 +171,23 @@ class ImageGenServer {
         console.info(`[sd-image-gen-mcp] Image uploaded successfully: ${fullUrl}`);
         return fullUrl;
       } else {
-        console.error(`[sd-image-gen-mcp] Unexpected response format from ImgBed: Status ${response.status}, Data: ${JSON.stringify(response.data)}`);
+        // Log detailed info when the expected format is not found
+        console.error(`[sd-image-gen-mcp] Unexpected response format from ImgBed. Status: ${response.status}. Headers: ${JSON.stringify(response.headers)}. Data: ${JSON.stringify(response.data)}`);
         return null;
       }
     } catch (error) {
-      let errorMessage = 'Unknown error during ImgBed upload';
+      let errorMessage = 'Unknown error during ImgBed upload.';
       if (axios.isAxiosError(error)) {
-        errorMessage = `Axios error: ${error.message}${error.response ? ` - Status ${error.response.status} - ${JSON.stringify(error.response.data)}` : ''}`;
+        // Log detailed Axios error information
+        const responseInfo = error.response ? ` Status: ${error.response.status}. Headers: ${JSON.stringify(error.response.headers)}. Data: ${JSON.stringify(error.response.data)}` : ' No response received.';
+        const requestInfo = error.request ? ` Request data: ${JSON.stringify(error.config?.data)}.` : ' No request object found.'; // Be careful logging request data if it contains sensitive info
+        errorMessage = `Axios error: ${error.message}.${responseInfo}${requestInfo}`;
       } else if (error instanceof Error) {
-        errorMessage = error.message;
+        errorMessage = `Generic error: ${error.message}. Stack: ${error.stack}`;
+      } else {
+        errorMessage = `Caught non-Error object: ${String(error)}`;
       }
-      console.error(`[sd-image-gen-mcp] Error uploading image to ImgBed: ${errorMessage}`);
+      console.error(`[sd-image-gen-mcp] Failed to upload image to ImgBed: ${errorMessage}`);
       return null;
     }
   }
@@ -226,8 +232,8 @@ class ImageGenServer {
               width: { type: 'number', description: 'Image width (default: 1024)', minimum: 512, maximum: 2048 },
               height: { type: 'number', description: 'Image height (default: 1024)', minimum: 512, maximum: 2048 },
               cfg_scale: { type: 'number', description: 'CFG scale (default: 1)', minimum: 1, maximum: 30 },
-              sampler_name: { type: 'string', description: 'Sampling algorithm (default: Euler)', default: 'Euler' },
-              scheduler_name: { type: 'string', description: 'Scheduler algorithm (default: Simple)', default: 'Simple' },
+              sampler_name: { type: 'string', description: 'Sampling algorithm (default: Euler a)', default: 'Euler a' },
+              scheduler_name: { type: 'string', description: 'Scheduler algorithm (default: Automatic)', default: 'Automatic' },
               seed: { type: 'number', description: 'Random seed (-1 for random)', minimum: -1 },
               batch_size: { type: 'number', description: 'Number of images to generate (default: 1)', minimum: 1, maximum: 4 },
               restore_faces: { type: 'boolean', description: 'Enable face restoration' },
@@ -333,11 +339,11 @@ class ImageGenServer {
               width: args.width || 1024,
               height: args.height || 1024,
               cfg_scale: args.cfg_scale || 1,
-              sampler_name: args.sampler_name || 'Euler',
+              sampler_name: args.sampler_name || 'Euler a',
               seed: args.seed ?? -1,
               n_iter: args.batch_size || 1,
               distilled_cfg_scale: args.distilled_cfg_scale || 3.5,
-              scheduler_name: args.scheduler_name || 'Simple',
+              scheduler_name: args.scheduler_name || 'Automatic',
               tiling: !!args.tiling,
               restore_faces: !!args.restore_faces
             };
