@@ -424,39 +424,34 @@ class ImageGenServer {
             }
 
             try {
-              // 获取完整的响应对象
-              const response = await this.axiosInstance.post('/sdapi/v1/options', {
+              // 调用 API，增加超时时间。Axios 会在非 2xx 状态时抛出错误。
+              await this.axiosInstance.post('/sdapi/v1/options', {
                 sd_model_checkpoint: args.model_name
               }, {
-                // 为这个特定请求设置更长的超时时间（例如 10 分钟）
+                // 设置超时时间为 10 分钟
                 timeout: 600000
               });
 
-              // 检查 HTTP 状态码是否表示成功 (2xx)
-              if (response.status >= 200 && response.status < 300) {
-                // 即使 response.data 为空，只要状态码成功，就视为成功
-                return { content: [{ type: 'text', text: `Model successfully set to: ${args.model_name}` }] };
-              } else {
-                // 如果状态码表示失败，则构造错误信息并抛出
-                const errorDetails = response.data ? JSON.stringify(response.data) : 'No response data';
-                throw new McpError(ErrorCode.InternalError, `Failed to set model. API returned status ${response.status}. Details: ${errorDetails}`);
-              }
+              // 如果上面的调用没有抛出错误，则认为成功
+              return { content: [{ type: 'text', text: `Model successfully set to: ${args.model_name}` }] };
+
             } catch (error: any) {
-              // 处理 axios 请求本身的错误（网络问题、超时等）或上面抛出的错误
+              // 处理 Axios 错误（包括非 2xx 状态、超时、网络问题等）
               console.error("Error setting SD model via API:", error);
-              // 尝试从 error 对象中提取更具体的错误信息
               let errorMessage = 'Unknown error occurred';
-              if (error instanceof McpError) {
-                 // 如果是上面我们自己抛出的 McpError，直接重新抛出
-                 throw error;
-              } else if (error.response) {
-                // Axios error with response from server
+               if (error.response) {
+                // Axios error with response from server (e.g., 4xx, 5xx)
                 errorMessage = `API returned status ${error.response.status}. Details: ${JSON.stringify(error.response.data)}`;
               } else if (error.request) {
-                // Axios error where request was made but no response received
-                errorMessage = 'No response received from SD API server.';
+                // Axios error where request was made but no response received (e.g., timeout)
+                // Check for timeout specifically
+                if (error.code === 'ECONNABORTED' || error.message.toLowerCase().includes('timeout')) {
+                   errorMessage = `Request timed out after 10 minutes while setting model. The model might still be loading in the background. Error: ${error.message}`;
+                } else {
+                   errorMessage = `No response received from SD API server. Error: ${error.message}`;
+                }
               } else {
-                // Other errors (e.g., setup error)
+                // Other errors (e.g., setup error before request)
                 errorMessage = error.message || 'Failed to send request to SD API.';
               }
               throw new McpError(ErrorCode.InternalError, `Error calling SD API to set model: ${errorMessage}`);
