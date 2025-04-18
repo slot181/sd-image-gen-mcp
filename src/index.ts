@@ -427,6 +427,9 @@ class ImageGenServer {
               // 获取完整的响应对象
               const response = await this.axiosInstance.post('/sdapi/v1/options', {
                 sd_model_checkpoint: args.model_name
+              }, {
+                // 为这个特定请求设置更长的超时时间（例如 10 分钟）
+                timeout: 600000
               });
 
               // 检查 HTTP 状态码是否表示成功 (2xx)
