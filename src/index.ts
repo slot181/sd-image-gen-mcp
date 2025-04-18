@@ -423,11 +423,41 @@ class ImageGenServer {
               throw new McpError(ErrorCode.InvalidParams, 'Invalid parameters');
             }
 
-            await this.axiosInstance.post('/sdapi/v1/options', {
-              sd_model_checkpoint: args.model_name
-            });
+            try {
+              // 获取完整的响应对象
+              const response = await this.axiosInstance.post('/sdapi/v1/options', {
+                sd_model_checkpoint: args.model_name
+              });
 
-            return { content: [{ type: 'text', text: `Model set to: ${args.model_name}` }] };
+              // 检查 HTTP 状态码是否表示成功 (2xx)
+              if (response.status >= 200 && response.status < 300) {
+                // 即使 response.data 为空，只要状态码成功，就视为成功
+                return { content: [{ type: 'text', text: `Model successfully set to: ${args.model_name}` }] };
+              } else {
+                // 如果状态码表示失败，则构造错误信息并抛出
+                const errorDetails = response.data ? JSON.stringify(response.data) : 'No response data';
+                throw new McpError(ErrorCode.InternalError, `Failed to set model. API returned status ${response.status}. Details: ${errorDetails}`);
+              }
+            } catch (error: any) {
+              // 处理 axios 请求本身的错误（网络问题、超时等）或上面抛出的错误
+              console.error("Error setting SD model via API:", error);
+              // 尝试从 error 对象中提取更具体的错误信息
+              let errorMessage = 'Unknown error occurred';
+              if (error instanceof McpError) {
+                 // 如果是上面我们自己抛出的 McpError，直接重新抛出
+                 throw error;
+              } else if (error.response) {
+                // Axios error with response from server
+                errorMessage = `API returned status ${error.response.status}. Details: ${JSON.stringify(error.response.data)}`;
+              } else if (error.request) {
+                // Axios error where request was made but no response received
+                errorMessage = 'No response received from SD API server.';
+              } else {
+                // Other errors (e.g., setup error)
+                errorMessage = error.message || 'Failed to send request to SD API.';
+              }
+              throw new McpError(ErrorCode.InternalError, `Error calling SD API to set model: ${errorMessage}`);
+            }
           }
 
           case 'get_sd_upscalers': {
