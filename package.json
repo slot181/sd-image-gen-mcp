@@ -1,5 +1,5 @@
 {
-  "name": "image-gen",
+  "name": "sd-image-gen",
   "version": "0.1.0",
   "description": "Generate images using Automatic1111/ForgeUI API",
   "type": "module",
@@ -19,5 +19,8 @@
   },
   "devDependencies": {
     "@types/form-data": "^2.2.1"
+  },
+  "bin": {
+    "sd-image-gen": "./build/index.js"
   }
 }
