@@ -221,7 +221,7 @@ class ImageGenServer {
     this.server.setRequestHandler(ListToolsRequestSchema, async () => ({
       tools: [
         {
-          name: 'generate_image',
+          name: 'generate_sd_image',
           description: 'Generate an image using Stable Diffusion',
           inputSchema: {
             type: 'object',
@@ -292,7 +292,7 @@ class ImageGenServer {
           }
         },
         {
-          name: 'upscale_images',
+          name: 'upscale_sd_images',
           description: 'Upscale one or more images using Stable Diffusion',
           inputSchema: {
             type: 'object',
@@ -341,7 +341,7 @@ class ImageGenServer {
     this.server.setRequestHandler(CallToolRequestSchema, async (request) => {
       try {
         switch (request.params.name) {
-          case 'generate_image': {
+          case 'generate_sd_image': {
             const args = request.params.arguments;
             if (!isGenerateImageArgs(args)) {
               throw new McpError(ErrorCode.InvalidParams, 'Invalid parameters');
@@ -477,7 +477,7 @@ class ImageGenServer {
             return { content: [{ type: 'text', text: JSON.stringify(response.data) }] };
           }
 
-          case 'upscale_images': {
+          case 'upscale_sd_images': {
             const args = request.params.arguments;
             if (!isUpscaleImagesArgs(args)) {
               throw new McpError(ErrorCode.InvalidParams, 'Invalid parameters');
