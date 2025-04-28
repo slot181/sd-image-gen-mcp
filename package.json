@@ -1,12 +1,13 @@
 {
-  "name": "sd-image-gen",
+  "name": "@stone181/sd-image-gen-mcp",
   "version": "0.1.0",
   "description": "Generate images using Automatic1111/ForgeUI API",
   "type": "module",
   "scripts": {
     "build": "tsc && node -e \"require('fs').chmodSync('build/index.js', '755')\"",
     "watch": "tsc -w",
-    "start": "node build/index.js"
+    "start": "node build/index.js",
+    "prepare": "npm run build"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "latest",

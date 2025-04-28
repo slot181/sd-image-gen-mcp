@@ -372,27 +372,10 @@ class ImageGenServer {
             const results = [];
             for (const imageData of response.data.images) {
               const base64Data = imageData.includes(',') ? imageData.split(',')[1] : imageData;
-              const pngInfoResponse = await this.axiosInstance.post('/sdapi/v1/png-info', { image: `data:image/png;base64,${imageData}` });
-              
               const outputPath = path.join(outputDir, `sd_${randomUUID()}.png`);
               const imageBuffer = Buffer.from(base64Data, 'base64');
-              
-              let sharpInstance = sharp(imageBuffer);
-              const infoString = pngInfoResponse.data.info;
 
-              // Only add EXIF metadata if the info string is not empty
-              if (typeof infoString === 'string' && infoString.trim() !== '') {
-                try {
-                  sharpInstance = sharpInstance.withMetadata({ exif: { IFD0: { ImageDescription: infoString } } });
-                } catch (exifError) {
-                   console.warn(`[sd-image-gen-mcp] Failed to prepare EXIF metadata: ${exifError instanceof Error ? exifError.message : String(exifError)}. Skipping EXIF for this image.`);
-                   // Optionally re-throw if you want the whole operation to fail on EXIF error
-                }
-              } else {
-                console.warn(`[sd-image-gen-mcp] Received empty or invalid info string from png-info endpoint. Skipping EXIF metadata.`);
-              }
-
-              await sharpInstance.toFile(outputPath);
+              await sharp(imageBuffer).toFile(outputPath);
 
               // --- Upload to CF ImgBed if configured ---
               let uploadedUrl: string | null = null;
@@ -403,7 +386,6 @@ class ImageGenServer {
 
               results.push({
                  path: outputPath,
-                 parameters: pngInfoResponse.data.info,
                  url: uploadedUrl // Add the URL field
               });
             }
@@ -427,9 +409,6 @@ class ImageGenServer {
               // 调用 API，增加超时时间。Axios 会在非 2xx 状态时抛出错误。
               await this.axiosInstance.post('/sdapi/v1/options', {
                 sd_model_checkpoint: args.model_name
-              }, {
-                // 设置超时时间为 10 分钟
-                timeout: 600000
               });
 
               // 如果上面的调用没有抛出错误，则认为成功
