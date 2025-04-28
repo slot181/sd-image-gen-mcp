@@ -1,6 +1,6 @@
 {
   "name": "@stone181/sd-image-gen-mcp",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "description": "Generate images using Automatic1111/ForgeUI API",
   "type": "module",
   "scripts": {

@@ -94,7 +94,7 @@ class ImageGenServer {
         }
     }
     constructor() {
-        this.server = new Server({ name: 'image-gen', version: '0.1.0' }, { capabilities: { tools: {} } });
+        this.server = new Server({ name: 'sd-image-gen-mcp', version: '1.0.0' }, { capabilities: { tools: {} } });
         const axiosConfig = {
             baseURL: SD_WEBUI_URL,
             headers: { 'Content-Type': 'application/json' },

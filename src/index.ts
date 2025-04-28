@@ -194,7 +194,7 @@ class ImageGenServer {
 
   constructor() {
     this.server = new Server(
-      { name: 'image-gen', version: '0.1.0' },
+      { name: 'sd-image-gen-mcp', version: '1.0.0' },
       { capabilities: { tools: {} } }
     );
 
