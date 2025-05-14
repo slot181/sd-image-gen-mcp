@@ -1,0 +1,13 @@
+export declare const SD_WEBUI_URL: string;
+export declare const AUTH_USER: string | undefined;
+export declare const AUTH_PASS: string | undefined;
+export declare const DEFAULT_OUTPUT_DIR: string;
+export declare const REQUEST_TIMEOUT: number;
+export declare const SD_RESIZE_MODE: number;
+export declare const SD_UPSCALE_MULTIPLIER: number;
+export declare const SD_UPSCALE_WIDTH: number;
+export declare const SD_UPSCALE_HEIGHT: number;
+export declare const SD_UPSCALER_1: string;
+export declare const SD_UPSCALER_2: string;
+export declare const CF_IMGBED_UPLOAD_URL: string | undefined;
+export declare const CF_IMGBED_API_KEY: string | undefined;
