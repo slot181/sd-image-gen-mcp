@@ -1,7 +1,6 @@
 import axios, { AxiosInstance } from 'axios'; // Import main axios for downloading
 import path from 'path';
 import fs from 'fs';
-import { mkdir } from 'fs/promises';
 import { randomUUID } from 'crypto'; // For generating temp filenames
 import { z } from 'zod';
 import {

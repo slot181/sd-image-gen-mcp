@@ -1,10 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
 import sharp from 'sharp';
 import path from 'path';
-import fs from 'fs';
-import { mkdir } from 'fs/promises';
 import { randomUUID } from 'crypto';
-import FormData from 'form-data';
 import { z } from 'zod';
 import { DEFAULT_OUTPUT_DIR, CF_IMGBED_UPLOAD_URL, CF_IMGBED_API_KEY } from '../config.js';
 import { ensureDirectoryExists } from '../utils/fileUtils.js';
@@ -71,14 +68,14 @@ export type ValidatedGenerateImageArgs = z.infer<typeof generateImageSchema>;
 // Removed ensureDirectoryExists as it will be imported
 // Removed uploadToCfImgbed as it will be imported
 
-function sanitizePromptForFilename(prompt: string, maxLength: number = 50): string {
+function sanitizePromptForFilename(prompt: string, maxLength: number = 3500): string {
   if (!prompt) {
     return 'no_prompt';
   }
-  // Take the first maxLength characters
+  // Truncate the prompt to maxLength before further processing
   let sanitized = prompt.substring(0, maxLength);
-  // Replace non-alphanumeric characters (excluding hyphen and underscore) with underscore
-  sanitized = sanitized.replace(/[^\w\s-]/gi, '').replace(/\s+/g, '_');
+
+  sanitized = sanitized.replace(/[^\p{L}\p{N}\s_-]/gu, '').replace(/\s+/g, '_');
   // Replace multiple underscores with a single one
   sanitized = sanitized.replace(/__+/g, '_');
   // Remove leading/trailing underscores

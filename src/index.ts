@@ -50,7 +50,7 @@ const axiosInstance: AxiosInstance = axios.create(axiosConfig);
 
 // Create the MCP Server instance
 const server = new Server(
-  { name: 'sd-image-gen-mcp', version: '1.1.1' }, // Updated version after refactor
+  { name: 'sd-image-gen-mcp', version: '1.1.2' }, // Updated version after refactor
   { capabilities: { tools: {} } }
 );
 

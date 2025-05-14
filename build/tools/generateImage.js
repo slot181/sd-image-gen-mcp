@@ -25,14 +25,13 @@ export const generateImageSchema = z.object({
 // --- Helper Functions ---
 // Removed ensureDirectoryExists as it will be imported
 // Removed uploadToCfImgbed as it will be imported
-function sanitizePromptForFilename(prompt, maxLength = 50) {
+function sanitizePromptForFilename(prompt, maxLength = 3500) {
     if (!prompt) {
         return 'no_prompt';
     }
-    // Take the first maxLength characters
+    // Truncate the prompt to maxLength before further processing
     let sanitized = prompt.substring(0, maxLength);
-    // Replace non-alphanumeric characters (excluding hyphen and underscore) with underscore
-    sanitized = sanitized.replace(/[^\w\s-]/gi, '').replace(/\s+/g, '_');
+    sanitized = sanitized.replace(/[^\p{L}\p{N}\s_-]/gu, '').replace(/\s+/g, '_');
     // Replace multiple underscores with a single one
     sanitized = sanitized.replace(/__+/g, '_');
     // Remove leading/trailing underscores
