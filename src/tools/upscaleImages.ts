@@ -64,8 +64,20 @@ export const upscaleImagesSchema = z.object({
 // Type alias for validated arguments
 export type ValidatedUpscaleImagesArgs = z.infer<typeof upscaleImagesSchema>;
 
-// --- Helper Function (Consider moving to utils later) ---
-// Removed ensureDirectoryExists as it will be imported
+// --- Helper Function for sanitizing filename components ---
+function sanitizeFilenameComponent(name: string, maxLength: number = 50): string {
+  if (!name) {
+    return `random_${randomUUID().substring(0, 8)}`;
+  }
+  let sanitized = name.substring(0, maxLength);
+  // Allow letters, numbers, underscore, hyphen, dot. Replace others with underscore.
+  sanitized = sanitized.replace(/[^\p{L}\p{N}._-]/gu, '_').replace(/\s+/g, '_');
+  sanitized = sanitized.replace(/__+/g, '_'); // Collapse multiple underscores
+  sanitized = sanitized.replace(/^_+|_+$/g, ''); // Trim leading/trailing underscores
+
+  // Ensure it's not empty or just dots/underscores
+  return sanitized.replace(/^\.+$/, `random_${randomUUID().substring(0,8)}`) || `component_${randomUUID().substring(0,8)}`;
+}
 
 // --- Main Handler Function ---
 export async function handleUpscaleImages(
@@ -86,16 +98,22 @@ export async function handleUpscaleImages(
         await ensureDirectoryExists(tmpDir); // Ensure tmp dir exists before writing
         console.log(`[upscaleImages] Downloading image from URL: ${imagePathOrUrl}`);
         const response = await axios.get(imagePathOrUrl, { responseType: 'arraybuffer' });
-        let tempFilename = `download_${randomUUID()}`;
+        
+        let baseTempName = `download`;
+        let tempExt = '.tmp';
         try {
-          const urlFilename = path.basename(new URL(imagePathOrUrl).pathname);
-          const ext = path.extname(urlFilename);
-          tempFilename = `${path.basename(urlFilename, ext)}_${randomUUID()}${ext || '.tmp'}`;
+          const urlObj = new URL(imagePathOrUrl);
+          const originalUrlFilename = path.basename(urlObj.pathname);
+          if (originalUrlFilename && originalUrlFilename !== '/') {
+            tempExt = path.extname(originalUrlFilename) || tempExt;
+            baseTempName = sanitizeFilenameComponent(path.parse(originalUrlFilename).name, 30); // Truncate base name
+          }
         } catch (e) {
-          // If URL parsing fails, stick to simpler random name
-          console.warn(`[upscaleImages] Could not parse filename from URL ${imagePathOrUrl}, using random name.`);
+          console.warn(`[upscaleImages] Could not parse filename/ext from URL ${imagePathOrUrl}, using defaults.`);
         }
+        const tempFilename = `${baseTempName}_${randomUUID().substring(0,8)}${tempExt}`;
         const tempFilePath = path.join(tmpDir, tempFilename);
+
         await fs.promises.writeFile(tempFilePath, Buffer.from(response.data));
         processedImagePaths.push(tempFilePath);
         tempFilesToDelete.push(tempFilePath);
@@ -152,9 +170,15 @@ export async function handleUpscaleImages(
     for (let i = 0; i < response.data.images.length; i++) {
       const imageData = response.data.images[i]; // This is base64 string
       // Ensure original filename is used for the upscaled version, based on processedImagePaths
-      const originalProcessedPath = processedImagePaths[i]; // Get the path that was actually processed
-      const originalFilenameForOutput = path.basename(originalProcessedPath); // Use its basename for the output
-      const outputPath = path.join(outputDir, `upscaled_${originalFilenameForOutput}`);
+      const originalProcessedPath = processedImagePaths[i]; 
+      const baseOriginalName = path.parse(originalProcessedPath).name; // Get name without extension
+      const originalExt = path.parse(originalProcessedPath).ext;       // Get extension
+      
+      // Sanitize and truncate the base name for the output file
+      const sanitizedBaseOutputName = sanitizeFilenameComponent(baseOriginalName, 50);
+      const outputFilename = `upscaled_${sanitizedBaseOutputName}${originalExt}`;
+      const outputPath = path.join(outputDir, outputFilename);
+      
       const imageBuffer = Buffer.from(imageData, 'base64');
 
     await fs.promises.writeFile(outputPath, imageBuffer);
@@ -162,8 +186,10 @@ export async function handleUpscaleImages(
     let uploadedUrl: string | null = null;
     // Check if ImgBed is configured before attempting upload
     if (CF_IMGBED_UPLOAD_URL && CF_IMGBED_API_KEY) {
-      // Use originalFilenameForOutput for the uploaded file as well
-      uploadedUrl = await uploadToCfImgbed(imageBuffer, `upscaled_${originalFilenameForOutput}`);
+      // For remote, we can use a slightly longer sanitized name if desired, but stick to outputFilename for consistency here
+      // Or, create a separate remoteSanitizedBaseOutputName with a larger maxLength for uploadToCfImgbed if needed.
+      // For now, using the same `outputFilename` for the upload.
+      uploadedUrl = await uploadToCfImgbed(imageBuffer, outputFilename);
     }
 
     results.push({
