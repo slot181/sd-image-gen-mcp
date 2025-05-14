@@ -68,7 +68,7 @@ export type ValidatedGenerateImageArgs = z.infer<typeof generateImageSchema>;
 // Removed ensureDirectoryExists as it will be imported
 // Removed uploadToCfImgbed as it will be imported
 
-function sanitizePromptForFilename(prompt: string, maxLength: number = 3500): string {
+function sanitizePromptForFilename(prompt: string, maxLength: number = 50): string {
   if (!prompt) {
     return 'no_prompt';
   }
@@ -114,19 +114,26 @@ export async function handleGenerateImage(
   }
 
   const results = [];
-  const sanitizedPrompt = sanitizePromptForFilename(args.prompt);
+  // For local filename, use maxLength 50 (current default of sanitizePromptForFilename)
+  const localSanitizedPrompt = sanitizePromptForFilename(args.prompt); 
+  // For remote filename for ImgBed, use a much larger maxLength, e.g., 1000 (or a configurable value)
+  const remoteSanitizedPrompt = sanitizePromptForFilename(args.prompt, 1000); 
 
   for (const imageData of response.data.images) {
     const base64Data = imageData.includes(',') ? imageData.split(',')[1] : imageData;
-    const filename = `sd_${sanitizedPrompt}_${randomUUID()}.png`;
-    const outputPath = path.join(outputDir, filename);
+    
+    // Filename for local storage (truncated prompt)
+    const localFilename = `sd_${localSanitizedPrompt}_${randomUUID()}.png`;
+    const outputPath = path.join(outputDir, localFilename);
     const imageBuffer = Buffer.from(base64Data, 'base64');
 
     await sharp(imageBuffer).toFile(outputPath);
 
     let uploadedUrl: string | null = null;
     if (CF_IMGBED_UPLOAD_URL && CF_IMGBED_API_KEY) {
-      uploadedUrl = await uploadToCfImgbed(imageBuffer, filename);
+      // Filename for ImgBed upload (longer, sanitized prompt)
+      const remoteFilename = `sd_${remoteSanitizedPrompt}_${randomUUID()}.png`;
+      uploadedUrl = await uploadToCfImgbed(imageBuffer, remoteFilename);
     }
 
     results.push({

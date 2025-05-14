@@ -30,7 +30,7 @@ if (AUTH_USER && AUTH_PASS) {
 }
 const axiosInstance = axios.create(axiosConfig);
 // Create the MCP Server instance
-const server = new Server({ name: 'sd-image-gen-mcp', version: '1.1.2' }, // Updated version after refactor
+const server = new Server({ name: 'sd-image-gen-mcp', version: '1.1.3' }, // Updated version after refactor
 { capabilities: { tools: {} } });
 // --- Tool Definitions (using imported Zod schemas for structure) ---
 // The actual JSON schema for ListTools will be derived from these Zod schemas by the SDK,
