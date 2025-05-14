@@ -66,10 +66,26 @@ export const generateImageSchema = z.object({
 export type ValidatedGenerateImageArgs = z.infer<typeof generateImageSchema>;
 
 
-// --- Helper Functions (Consider moving to utils later) ---
+// --- Helper Functions ---
 
 // Removed ensureDirectoryExists as it will be imported
 // Removed uploadToCfImgbed as it will be imported
+
+function sanitizePromptForFilename(prompt: string, maxLength: number = 50): string {
+  if (!prompt) {
+    return 'no_prompt';
+  }
+  // Take the first maxLength characters
+  let sanitized = prompt.substring(0, maxLength);
+  // Replace non-alphanumeric characters (excluding hyphen and underscore) with underscore
+  sanitized = sanitized.replace(/[^\w\s-]/gi, '').replace(/\s+/g, '_');
+  // Replace multiple underscores with a single one
+  sanitized = sanitized.replace(/__+/g, '_');
+  // Remove leading/trailing underscores
+  sanitized = sanitized.replace(/^_+|_+$/g, '');
+
+  return sanitized.toLowerCase() || 'prompt'; // Ensure not empty
+}
 
 // --- Main Handler Function ---
 export async function handleGenerateImage(
@@ -101,9 +117,11 @@ export async function handleGenerateImage(
   }
 
   const results = [];
+  const sanitizedPrompt = sanitizePromptForFilename(args.prompt);
+
   for (const imageData of response.data.images) {
     const base64Data = imageData.includes(',') ? imageData.split(',')[1] : imageData;
-    const filename = `sd_${randomUUID()}.png`;
+    const filename = `sd_${sanitizedPrompt}_${randomUUID()}.png`;
     const outputPath = path.join(outputDir, filename);
     const imageBuffer = Buffer.from(base64Data, 'base64');
 

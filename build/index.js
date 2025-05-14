@@ -30,7 +30,7 @@ if (AUTH_USER && AUTH_PASS) {
 }
 const axiosInstance = axios.create(axiosConfig);
 // Create the MCP Server instance
-const server = new Server({ name: 'sd-image-gen-mcp', version: '1.1.0' }, // Updated version after refactor
+const server = new Server({ name: 'sd-image-gen-mcp', version: '1.1.1' }, // Updated version after refactor
 { capabilities: { tools: {} } });
 // --- Tool Definitions (using imported Zod schemas for structure) ---
 // The actual JSON schema for ListTools will be derived from these Zod schemas by the SDK,
@@ -101,8 +101,8 @@ const toolDefinitions = [
                 images: { type: 'array', items: { type: 'string' }, description: 'Array of image file paths to upscale' },
                 resize_mode: { type: 'number', enum: [0, 1], description: '0 for multiplier (default), 1 for dimensions' },
                 upscaling_resize: { type: 'number', description: 'Upscale multiplier (default: 2)' },
-                upscaling_resize_w: { type: 'number', description: 'Target width (default: 1024)' },
-                upscaling_resize_h: { type: 'number', description: 'Target height (default: 1024)' },
+                upscaling_resize_w: { type: 'number', description: 'Target width (default: 2048)' },
+                upscaling_resize_h: { type: 'number', description: 'Target height (default: 2048)' },
                 upscaler_1: { type: 'string', description: 'Primary upscaler (default: R-ESRGAN 4x+)' },
                 upscaler_2: { type: 'string', description: 'Secondary upscaler (default: None)' },
                 output_path: { type: 'string', description: 'Custom output directory for upscaled image(s)' },
