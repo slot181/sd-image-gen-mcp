@@ -2,7 +2,7 @@ import { AxiosInstance } from 'axios';
 import { z } from 'zod';
 export interface UpscaleImagesArgs {
     images: string[];
-    resize_mode?: number;
+    resize_mode?: string;
     upscaling_resize?: number;
     upscaling_resize_w?: number;
     upscaling_resize_h?: number;
@@ -12,7 +12,7 @@ export interface UpscaleImagesArgs {
 }
 export declare const upscaleImagesSchema: z.ZodObject<{
     images: z.ZodArray<z.ZodString, "many">;
-    resize_mode: z.ZodDefault<z.ZodOptional<z.ZodNumber>>;
+    resize_mode: z.ZodDefault<z.ZodOptional<z.ZodEnum<["0", "1"]>>>;
     upscaling_resize: z.ZodDefault<z.ZodOptional<z.ZodNumber>>;
     upscaling_resize_w: z.ZodDefault<z.ZodOptional<z.ZodNumber>>;
     upscaling_resize_h: z.ZodDefault<z.ZodOptional<z.ZodNumber>>;
@@ -21,7 +21,7 @@ export declare const upscaleImagesSchema: z.ZodObject<{
     output_path: z.ZodOptional<z.ZodString>;
 }, "strip", z.ZodTypeAny, {
     images: string[];
-    resize_mode: number;
+    resize_mode: "0" | "1";
     upscaling_resize: number;
     upscaling_resize_w: number;
     upscaling_resize_h: number;
@@ -31,7 +31,7 @@ export declare const upscaleImagesSchema: z.ZodObject<{
 }, {
     images: string[];
     output_path?: string | undefined;
-    resize_mode?: number | undefined;
+    resize_mode?: "0" | "1" | undefined;
     upscaling_resize?: number | undefined;
     upscaling_resize_w?: number | undefined;
     upscaling_resize_h?: number | undefined;

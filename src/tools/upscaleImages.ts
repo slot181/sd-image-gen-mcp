@@ -20,7 +20,7 @@ import { uploadToCfImgbed } from '../utils/cfUtils.js'; // Import the upload fun
 // --- Interfaces ---
 export interface UpscaleImagesArgs {
   images: string[]; // Array of image file paths
-  resize_mode?: number;
+  resize_mode?: string; // Changed to string
   upscaling_resize?: number; // Multiplier
   upscaling_resize_w?: number; // Target width
   upscaling_resize_h?: number; // Target height
@@ -52,7 +52,7 @@ interface UpscaleImagePayload {
 // --- Zod Schema for Input Validation ---
 export const upscaleImagesSchema = z.object({
   images: z.array(z.string().min(1, "Image path cannot be empty")).min(1, "At least one image path is required"),
-  resize_mode: z.number().int().min(0).max(1).optional().default(SD_RESIZE_MODE),
+  resize_mode: z.enum(["0", "1"]).optional().default(SD_RESIZE_MODE.toString() as "0" | "1"), // Changed to string enum
   upscaling_resize: z.number().min(1).optional().default(SD_UPSCALE_MULTIPLIER), // Multiplier
   upscaling_resize_w: z.number().int().min(1).optional().default(SD_UPSCALE_WIDTH), // Target width
   upscaling_resize_h: z.number().int().min(1).optional().default(SD_UPSCALE_HEIGHT), // Target height
@@ -145,7 +145,7 @@ export async function handleUpscaleImages(
     );
 
     const payload: UpscaleImagePayload = {
-    resize_mode: args.resize_mode,
+    resize_mode: parseInt(args.resize_mode), // Convert string to number
     show_extras_results: true, // Default as in original
     gfpgan_visibility: 0,    // Default as in original
     codeformer_visibility: 0,// Default as in original

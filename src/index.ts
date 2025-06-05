@@ -50,7 +50,7 @@ const axiosInstance: AxiosInstance = axios.create(axiosConfig);
 
 // Create the MCP Server instance
 const server = new Server(
-  { name: 'sd-image-gen-mcp', version: '1.1.4' }, // Updated version after refactor
+  { name: 'sd-image-gen-mcp', version: '1.1.5' }, // Updated version after refactor
   { capabilities: { tools: {} } }
 );
 
@@ -122,7 +122,7 @@ const toolDefinitions = [
       type: 'object',
       properties: {
         images: { type: 'array', items: { type: 'string' }, description: 'Array of image file paths to upscale' },
-        resize_mode: { type: 'number', enum: [0, 1], description: '0 for multiplier (default), 1 for dimensions' },
+        resize_mode: { type: 'string', enum: ["0", "1"], description: '0 for multiplier (default), 1 for dimensions' },
         upscaling_resize: { type: 'number', description: 'Upscale multiplier (default: 2)' },
         upscaling_resize_w: { type: 'number', description: 'Target width (default: 2048)' },
         upscaling_resize_h: { type: 'number', description: 'Target height (default: 2048)' },
